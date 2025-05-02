@@ -3,7 +3,7 @@ title: vLLM Think Formatter
 author: RJTPP
 author_url: https://github.com/RJTPP
 repo_url: https://github.com/RJTPP/open-webui-vllm-think-formatter
-version: 1.2.3
+version: 1.3.0
 license: MIT
 
 Description:
@@ -25,30 +25,41 @@ class Filter:
         THINK_TAG_CLOSE: str = Field(
             default="</think>", description="The reasoning close tag. Default: </think>"
         )
+        USE_STREAMING: bool = Field(
+            default=True, description="Use streaming mode. Default: True"
+        )
 
     def __init__(self):
         self.valves = self.Valves()
         self.start_think = None
         self.end_think = None
+        self.is_starting = False
 
     def inlet(self, body: dict, **kwargs) -> dict:
+        self.is_starting = True
         self.start_think = time()
         self.end_think = None
         return body
     
     def stream(self, event: dict, **kwargs) -> dict:
-        if self.end_think:
+        if self.end_think or (self.valves.USE_STREAMING and not self.is_starting):
             return event
         
         for choice in event.get("choices", []):
             delta = choice.get("delta", {})
             if "content" in delta:
+                if self.valves.USE_STREAMING and self.is_starting and self.valves.THINK_TAG_OPEN not in delta["content"]:
+                    delta["content"] = f"{self.valves.THINK_TAG_OPEN}\n{delta['content']}"
+                    self.is_starting = False
                 if self.valves.THINK_TAG_CLOSE in delta["content"]:
                     self.end_think = time()
                     break
         return event
 
-    def outlet(self, body: dict, **kwargs) -> None:
+    def outlet(self, body: dict, **kwargs) -> dict:
+        if self.valves.USE_STREAMING:
+            return body
+        
         text = body["messages"][-1]["content"]
         elapsed = int((self.end_think or time()) - self.start_think)
         think_summary = f"<details>\n<summary>Thought for {elapsed} {'second' if elapsed == 1 else 'seconds'}</summary>\n\n"
