@@ -34,6 +34,12 @@ You can customize the `Valves` class in the settings.
 
 
 > [!TIP]  
-> Long reasoning outputs can still cause some lag when expanding the `<details>` block in OpenWebUI — especially during streaming.  
+> Long reasoning outputs can cause some lag when expanding the `<details>` block in OpenWebUI — especially during streaming.  
 > Setting `USE_STREAMING = False` may slightly improve performance by preventing blockquote rendering until the full response is complete.  
 > For best results, avoid expanding the reasoning block while it’s still being generated.
+
+## 📜 License
+
+This project is released under the [MIT License](LICENSE).
+
+You are free to use, modify, and distribute this software under the terms of the MIT License. See the LICENSE file for detailed terms and conditions.
