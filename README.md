@@ -20,7 +20,7 @@ There are two methods for formatting reasoning content:
 
 > [!NOTE]  
 > **Streaming support** was introduced in **v1.3.0**, allowing the filter to inject a `<think>` tag into the first streamed chunk.  
-> However, this may not work consistently across all setups, and the filter does **not check for `</think>`** before injecting the opening tag.
+> However, this may not work consistently across all setups, and the filter does **not check for `</think>` tag** before injecting the opening tag.
 
 ## ⚙️ Configuration
 
