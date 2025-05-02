@@ -2,8 +2,11 @@
 title: vLLM Think Formatter
 author: RJTPP
 author_url: https://github.com/RJTPP
-version: 1.1.0
+repo_url: https://github.com/RJTPP/open-webui-vllm-think-formatter
+version: 1.2.1
+license: MIT
 
+Description:
 This filter post-processes vLLM responses by wrapping reasoning content in a collapsible <details> block.
 It fixes missing <think> tags and formats the output after the full response has been generated (not during streaming).
 Useful when using vLLM APIs that return </think> but omit the starting <think> tag.
