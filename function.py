@@ -3,7 +3,7 @@ title: vLLM Think Formatter
 author: RJTPP
 author_url: https://github.com/RJTPP
 repo_url: https://github.com/RJTPP/open-webui-vllm-think-formatter
-version: 1.2.2
+version: 1.2.3
 license: MIT
 
 Description:
@@ -30,7 +30,6 @@ class Filter:
         self.valves = self.Valves()
         self.start_think = None
         self.end_think = None
-        pass
 
     def inlet(self, body: dict, **kwargs) -> dict:
         self.start_think = time()
@@ -52,7 +51,7 @@ class Filter:
     def outlet(self, body: dict, **kwargs) -> None:
         text = body["messages"][-1]["content"]
         elapsed = int((self.end_think or time()) - self.start_think)
-        think_summary = f"<details>\n<summary>Thought for {elapsed} seconds</summary>\n\n"
+        think_summary = f"<details>\n<summary>Thought for {elapsed} {'second' if elapsed == 1 else 'seconds'}</summary>\n\n"
         think_end = "\n</details>"
 
         # Patch missing <think> tag
