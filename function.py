@@ -3,13 +3,13 @@ title: vLLM Think Formatter
 author: RJTPP
 author_url: https://github.com/RJTPP
 repo_url: https://github.com/RJTPP/open-webui-vllm-think-formatter
-version: 1.2.1
+version: 1.2.2
 license: MIT
 
 Description:
 This filter post-processes vLLM responses by wrapping reasoning content in a collapsible <details> block.
-It fixes missing <think> tags and formats the output after the full response has been generated (not during streaming).
-Useful when using vLLM APIs that return </think> but omit the starting <think> tag.
+It also patches missing <think> tags and tracks reasoning time by detecting the </think> tag during streaming.
+Useful for vLLM APIs that return a closing </think> tag but omit the opening <think> tag.
 """
 from pydantic import BaseModel, Field
 from time import time
@@ -32,12 +32,12 @@ class Filter:
         self.end_think = None
         pass
 
-    def inlet(self, body, **kwargs):
+    def inlet(self, body: dict, **kwargs) -> dict:
         self.start_think = time()
         self.end_think = None
         return body
     
-    def stream(self, event: dict) -> dict:
+    def stream(self, event: dict, **kwargs) -> dict:
         if self.end_think:
             return event
         
@@ -49,7 +49,7 @@ class Filter:
                     break
         return event
 
-    def outlet(self, body, **kwargs):
+    def outlet(self, body: dict, **kwargs) -> None:
         text = body["messages"][-1]["content"]
         elapsed = int((self.end_think or time()) - self.start_think)
         think_summary = f"<details>\n<summary>Thought for {elapsed} seconds</summary>\n\n"
@@ -62,8 +62,9 @@ class Filter:
         think_content = self.extract_think_content(text)
         respond_content = self.extract_after_think(text)
 
+        # Skip formatting if tags are not found
         if think_content is None or respond_content is None:
-            return body  # Skip formatting if tags are not found
+            return body
 
         # Format reasoning block as quote
         think_content = ">" + think_content.replace("\n", "\n>")
