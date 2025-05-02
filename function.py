@@ -2,34 +2,29 @@
 title: vLLM Think Formatter
 author: RJTPP
 author_url: https://github.com/RJTPP
-version: 1.0.1
+version: 1.1.0
 
 This filter post-processes vLLM responses by wrapping reasoning content in a collapsible <details> block.
 It fixes missing <think> tags and formats the output after the full response has been generated (not during streaming).
 Useful when using vLLM APIs that return </think> but omit the starting <think> tag.
 """
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from time import time
 import re
-
-
-def extract_think_content(text: str) -> str | None:
-    match = re.search(r"<think>(.*?)</think>", text, re.DOTALL)
-    return match.group(1).strip() if match else None
-
-
-def extract_after_think(text: str) -> str | None:
-    match = re.search(r"</think>\s*(.*)", text, re.DOTALL)
-    return match.group(1).strip() if match else None
 
 
 class Filter:
     
     class Valves(BaseModel):  
-        pass
+        THINK_TAG_START: str = Field(
+            default="<think>", description="The reasoning open tag. Default: <think>"
+        )
+        THINK_TAG_END: str = Field(
+            default="</think>", description="The reasoning close tag. Default: </think>"
+        )
 
     def __init__(self):
-        # self.valves = self.Valves()
+        self.valves = self.Valves()
         self.start_think = None
         pass
 
@@ -43,11 +38,11 @@ class Filter:
         think_end = "\n</details>"
 
         # Patch missing <think> tag
-        if "</think>" in text and not text.lstrip().startswith("<think>"):
-            text = "<think>\n" + text
+        if self.valves.THINK_TAG_END in text and not text.lstrip().startswith(self.valves.THINK_TAG_START):
+            text = f"{self.valves.THINK_TAG_START}\n" + text
 
-        think_content = extract_think_content(text)
-        respond_content = extract_after_think(text)
+        think_content = self.extract_think_content(text)
+        respond_content = self.extract_after_think(text)
 
         if think_content is None or respond_content is None:
             return body  # Skip formatting if tags are not found
@@ -59,3 +54,13 @@ class Filter:
         text = f"{think_summary}{think_content}\n{think_end}{respond_content}"
         body["messages"][-1]["content"] = text
         return body
+    
+    
+    def extract_think_content(self, text: str) -> str | None:
+        match = re.search(rf"{self.valves.THINK_TAG_START}(.*?){self.valves.THINK_TAG_END}", text, re.DOTALL)
+        return match.group(1).strip() if match else None
+
+
+    def extract_after_think(self, text: str) -> str | None:
+        match = re.search(rf"{self.valves.THINK_TAG_END}\s*(.*)", text, re.DOTALL)
+        return match.group(1).strip() if match else None
