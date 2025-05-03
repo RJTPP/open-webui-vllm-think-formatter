@@ -9,6 +9,7 @@ There are two methods for formatting reasoning content:
 ### Steaming Formatting (v1.3.0+)
 
 - Injects the opening `<think>` tag into the first streamed chunk to ensure reasoning is wrapped correctly during live generation.
+- Requres **Open WebUI 0.5.17 or later**, as earlier versions do not support streaming filtering.
 
 
 ### Post-Processing

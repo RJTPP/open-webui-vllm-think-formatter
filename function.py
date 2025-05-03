@@ -2,6 +2,7 @@
 title: vLLM Think Formatter
 author: RJTPP
 author_url: https://github.com/RJTPP
+git_url: https://github.com/RJTPP/open-webui-vllm-think-formatter.git
 repo_url: https://github.com/RJTPP/open-webui-vllm-think-formatter
 version: 1.3.0
 license: MIT
